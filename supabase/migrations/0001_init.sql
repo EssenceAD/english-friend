@@ -53,6 +53,7 @@ create table if not exists public.phrases (
   constraint phrases_user_english unique (user_id, english_norm)
 );
 create index if not exists phrases_user_due on public.phrases (user_id, next_review_at);
+create index if not exists phrases_source_session on public.phrases (source_session_id);
 
 alter table public.settings enable row level security;
 alter table public.sessions enable row level security;

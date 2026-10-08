@@ -10,7 +10,7 @@ supabase/functions/chat/index.ts   ← AI 호출 Edge Function (API 키는 여�
 
 ## 먼저 화면만 보기 (서버 없이)
 
-`index.html`을 아무 정적 서버로 열고 주소 뒤에 `?mock=1`을 붙인다. CONFIG가 비어 있어도 자동으로 목업 모드가 된다.
+`index.html`을 아무 정적 서버로 열고 주소 뒤에 `?mock=1`을 붙인다.
 AI 대신 정해진 답이 나오고, 기록은 이 브라우저에만 저장된다.
 
 ```bash
@@ -19,59 +19,73 @@ python -m http.server 5178
 
 → http://localhost:5178/?mock=1
 
-## 실제로 쓰기 — 설정 순서 (한 번만)
+## 현재 상태 (2026-10-08)
 
-### 1. Supabase 프로젝트
-1. supabase.com → New project (무료 플랜으로 충분)
-2. **SQL Editor**에 `supabase/migrations/0001_init.sql` 내용을 붙여 넣고 Run
-3. **Authentication → Sign In / Providers → Email**: "Allow new users to sign up" **끄기** (나 말고 아무도 가입 못 하게)
-4. **Authentication → Users → Add user → Create new user**: 내 이메일 + 비밀번호 (Auto Confirm 체크)
+| 항목 | 상태 |
+|---|---|
+| Supabase 프로젝트 | `english-friend` (ref `eoxzueqolokfvdjgqcqo`, 서울, 무료 플랜) |
+| DB | `0001_init.sql`, `0002_single_account_lock.sql` 적용 완료 (RLS 4테이블, 계정 1개 잠금) |
+| Edge Function | `chat` 배포 완료 (JWT 확인 켬) |
+| index.html CONFIG | 채움 → 실제 모드로 동작 (`?mock=1`을 붙이면 목업) |
+| 깃허브 페이지 | **https://essencead.github.io/english-friend/** |
 
-### 2. AI 키 (Anthropic)
-1. console.anthropic.com → API Keys → 키 발급
-2. **Billing → Limits**에서 월 사용 한도 설정 (예: $10). 명세 3-10.
+## 직접 넣어야 하는 것 (한 번만, 이 순서대로)
 
-### 3. Edge Function 배포
-Supabase CLI 사용 (`npm i -g supabase` 또는 `npx supabase`):
+AI 키·비밀번호·허용 이메일은 코드나 저장소에 넣지 않고 아래 화면에서 직접 넣는다.
+
+**① 가입 막기 — 제일 먼저**
+https://supabase.com/dashboard/project/eoxzueqolokfvdjgqcqo/auth/providers
+→ **Email** 줄 클릭 → **Allow new users to sign up** 끄기 → **Save**
+(DB 잠금은 "첫 계정 이후"만 막으므로, 내 계정을 만들기 전에 이걸 먼저 끈다)
+
+**② 내 계정 만들기**
+https://supabase.com/dashboard/project/eoxzueqolokfvdjgqcqo/auth/users
+→ 오른쪽 위 **Add user** → **Create new user** → 이메일 + 비밀번호 입력 → **Auto Confirm User** 체크 → **Create user**
+(가입을 꺼도 대시보드에서 만드는 건 된다. 계정은 1개만 만들 수 있다)
+
+**③ Anthropic API 키 발급 + 월 한도**
+1. https://console.anthropic.com/settings/keys → **Create Key** → 이름 `english-friend` → 만들어진 `sk-ant-...` 복사 (이 창을 닫으면 다시 못 봄)
+2. https://console.anthropic.com/settings/limits → 월 사용 한도 설정 (예: $10)
+
+**④ 시크릿 넣기 (AI 키 + 허용 이메일)**
+https://supabase.com/dashboard/project/eoxzueqolokfvdjgqcqo/functions/secrets
+→ 아래 두 개를 Name / Value로 추가 → **Save**
+
+| Name | Value |
+|---|---|
+| `ANTHROPIC_API_KEY` | ③에서 복사한 `sk-ant-...` |
+| `ALLOWED_EMAILS` | ②에서 만든 계정 이메일 |
+
+선택 (안 넣으면 기본값):
+
+| Name | 기본값 | 설명 |
+|---|---|---|
+| `ALLOWED_ORIGIN` | `*` | `https://essencead.github.io` 로 좁히기 (권장) |
+| `AI_MODEL` | `claude-haiku-5-5` | 모델 바꾸기 (예: `claude-sonnet-5-5`) |
+| `AI_EFFORT` | `low` | 생각 깊이. 지원 안 하는 모델이면 `none` |
+| `AI_STRUCTURED` | `on` | JSON 스키마 강제. 문제 생기면 `off` |
+| `DAILY_CALL_LIMIT` | `300` | 하루 AI 호출 상한 |
+
+시크릿은 저장하면 바로 적용된다 (함수 재배포 필요 없음). `ALLOWED_EMAILS`가 비어 있으면 함수가 모든 요청을 거절한다.
+
+**⑤ 써 보기**
+폰 크롬에서 https://essencead.github.io/english-friend/ → ②의 이메일·비밀번호로 로그인 → 🎤 시작하기 → 메뉴 → "홈 화면에 추가"
+
+## 나중에 함수를 고쳤을 때
 
 ```bash
 npx supabase login
 ```
 
 ```bash
-npx supabase link --project-ref <프로젝트-REF>
-```
-
-```bash
-npx supabase secrets set ANTHROPIC_API_KEY=sk-ant-... ALLOWED_EMAILS=내이메일@gmail.com
+npx supabase link --project-ref eoxzueqolokfvdjgqcqo
 ```
 
 ```bash
 npx supabase functions deploy chat
 ```
 
-선택 Secrets (안 넣으면 기본값):
-
-| 이름 | 기본값 | 설명 |
-|---|---|---|
-| `AI_MODEL` | `claude-haiku-5-5` | 모델 바꾸기 (예: `claude-sonnet-5-5`) |
-| `AI_EFFORT` | `low` | 생각 깊이. 지원 안 하는 모델이면 `none` |
-| `AI_STRUCTURED` | `on` | JSON 스키마 강제. 문제 생기면 `off` |
-| `DAILY_CALL_LIMIT` | `300` | 하루 AI 호출 상한 |
-| `ALLOWED_ORIGIN` | `*` | 깃허브 페이지 주소로 좁히기: `https://essencead.github.io` |
-
-`ALLOWED_EMAILS`가 비어 있으면 함수가 아무 요청도 받지 않는다 (일부러 그렇게 만듦).
-
-### 4. index.html 설정
-Supabase **Project Settings → API**에서 Project URL과 anon(또는 publishable) 키를 복사해 `index.html` 위쪽 `CONFIG`에 넣는다.
-이 키는 공개돼도 되는 키다 (RLS + 로그인 + 이메일 허용 목록으로 막혀 있음). **AI 키는 절대 여기 넣지 않는다.** 고친 뒤 commit + push하면 깃허브 페이지에 반영된다.
-
-### 5. 깃허브 페이지 (설정 완료)
-- 저장소: https://github.com/EssenceAD/english-friend (공개)
-- 앱 주소: **https://essencead.github.io/english-friend/** (Settings → Pages: `main` 브랜치 / root)
-- `main`에 push하면 1~2분 뒤 자동으로 반영된다.
-- 4번(CONFIG)을 채우기 전에는 목업 모드로 뜬다.
-- 폰 크롬에서 앱 주소 열기 → 메뉴 → "홈 화면에 추가"
+`main`에 push하면 깃허브 페이지는 1~2분 뒤 자동으로 반영된다. 무료 플랜 프로젝트는 1주일 동안 안 쓰면 일시정지되니, 그땐 대시보드에서 **Restore**를 누른다.
 
 마이크는 https에서만 동작한다 (깃허브 페이지는 https라 OK).
 
