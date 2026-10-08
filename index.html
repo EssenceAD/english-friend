@@ -1,0 +1,1006 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f1ea">
+<title>영어 친구</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💬</text></svg>">
+<style>
+:root{
+  --bg:#f6f1ea; --card:#fffdf9; --ink:#2a2622; --muted:#7d746b; --line:#e6ddd2;
+  --accent:#e0673a; --accent-ink:#fff; --ai:#ffffff; --me:#2f6f5e; --me-ink:#fff;
+  --soft:#f0e8dd; --good:#2f8a5b; --warn:#c9822b; --bad:#c2453a; --hl:#fff3c4;
+  --shadow:0 1px 2px rgba(0,0,0,.06),0 4px 14px rgba(0,0,0,.05);
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#191714; --card:#24211d; --ink:#efe9e1; --muted:#a59c91; --line:#3a352f;
+  --accent:#f0804f; --ai:#2b2824; --me:#3c8a75; --soft:#2f2b26; --hl:#4a3f1c; --shadow:none;
+}}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font:16px/1.5 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+  -webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+input,select,textarea{font:inherit;color:var(--ink);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+textarea{resize:vertical;min-height:80px}
+.hidden{display:none!important}
+#app{max-width:640px;margin:0 auto;height:100%;display:flex;flex-direction:column}
+.view{flex:1;overflow-y:auto;padding:16px 16px 24px}
+.btn{background:var(--accent);color:var(--accent-ink);padding:12px 18px;border-radius:12px;font-weight:600}
+.btn.ghost{background:var(--soft);color:var(--ink)}
+.btn.small{padding:6px 12px;font-size:14px;border-radius:9px}
+.btn:disabled{opacity:.5}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow)}
+.muted{color:var(--muted)} .small{font-size:13px}
+h2{font-size:20px;margin:4px 0 12px} h3{font-size:16px;margin:16px 0 8px}
+
+/* 하단 탭 */
+nav.tabs{display:flex;border-top:1px solid var(--line);background:var(--card);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;padding:8px 0 10px;font-size:12px;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px}
+nav.tabs button .ic{font-size:20px;line-height:1.2}
+nav.tabs button.on{color:var(--accent);font-weight:600}
+nav.tabs .badge{background:var(--accent);color:#fff;border-radius:9px;font-size:10px;padding:0 5px;margin-left:2px}
+
+/* 로그인 */
+#login{display:flex;flex-direction:column;justify-content:center;gap:12px;max-width:360px;margin:0 auto;height:100%;padding:24px}
+#login h1{font-size:28px;margin:0}
+
+/* 대화 */
+#chat{display:flex;flex-direction:column;flex:1;min-height:0}
+.topbar{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--card)}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#f4a261,#e76f51);color:#fff;
+  display:grid;place-items:center;font-weight:700;font-size:18px;flex:none}
+.topbar .who{flex:1;min-width:0}
+.topbar .name{font-weight:700}
+.topbar .sub{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.timer{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);text-align:right}
+.timer .bar{width:64px;height:4px;background:var(--soft);border-radius:2px;margin-top:3px;overflow:hidden}
+.timer .bar i{display:block;height:100%;background:var(--accent);width:0}
+#log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;flex-direction:column;max-width:88%}
+.row.ai{align-self:flex-start} .row.me{align-self:flex-end;align-items:flex-end}
+.bubble{padding:10px 14px;border-radius:18px;box-shadow:var(--shadow)}
+.ai .bubble{background:var(--ai);border:1px solid var(--line);border-top-left-radius:6px}
+.me .bubble{background:var(--me);color:var(--me-ink);border-top-right-radius:6px}
+.bubble .en{font-size:19px;line-height:1.4}
+.bubble .en.wait{color:transparent;background:var(--soft);border-radius:6px;user-select:none}
+.bubble .ko{font-size:13px;color:var(--muted);margin-top:4px}
+.bubble .ko.tap{color:transparent;background:var(--soft);border-radius:4px}
+.bubble .tools{display:flex;gap:6px;margin-top:6px}
+.bubble .tools button{font-size:13px;padding:2px 8px;border-radius:8px;background:var(--soft)}
+.me .lang{font-size:11px;opacity:.75;margin-top:2px}
+.repeat{margin-top:8px;background:var(--hl);border-radius:12px;padding:8px 12px;display:flex;align-items:center;gap:8px}
+.repeat .t{flex:1;font-weight:600}
+.repeat button{font-size:18px}
+.recast{font-size:13px;color:var(--muted);margin-top:4px;max-width:100%;text-align:right}
+.recast b{color:var(--ink);font-weight:600}
+.sys{align-self:center;font-size:13px;color:var(--muted);text-align:center;padding:4px 10px}
+.typing{display:inline-flex;gap:4px;padding:14px}
+.typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:b 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,80%,100%{opacity:.3}40%{opacity:1}}
+.warm{align-self:stretch}
+.warm .card{display:flex;flex-direction:column;gap:8px}
+.warm .en{font-size:22px;font-weight:600}
+.warm .acts{display:flex;gap:8px;flex-wrap:wrap}
+.heard{font-size:14px}
+.summary .card{display:flex;flex-direction:column;gap:6px}
+.summary ol{margin:0;padding-left:20px}
+.summary li{margin:4px 0}
+
+/* 컨트롤 */
+.controls{border-top:1px solid var(--line);background:var(--card);padding:10px 16px 12px}
+#interim{min-height:20px;font-size:14px;color:var(--muted);text-align:center;margin-bottom:6px}
+.ctlrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.side{width:64px;height:44px;border-radius:12px;background:var(--soft);font-weight:700;font-size:15px}
+.side.on{background:var(--me);color:#fff}
+#mic{width:76px;height:76px;border-radius:50%;background:var(--accent);color:#fff;font-size:32px;box-shadow:0 4px 16px rgba(224,103,58,.35);flex:none}
+#mic.listening{animation:pulse 1.2s infinite;background:var(--bad)}
+#mic.busy{opacity:.55}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(194,69,58,.5)}100%{box-shadow:0 0 0 18px rgba(194,69,58,0)}}
+.textrow{display:flex;gap:8px;margin-top:10px}
+.textrow input{flex:1}
+.ctlmeta{display:flex;justify-content:space-between;margin-top:8px;font-size:13px}
+.ctlmeta button{color:var(--muted);text-decoration:underline}
+#start{flex:1;overflow-y:auto;padding:24px 16px;display:flex;flex-direction:column;gap:14px}
+#start .big{font-size:22px;font-weight:700}
+
+/* 복습 */
+.rv-card{text-align:center;display:flex;flex-direction:column;gap:12px;padding:24px 16px}
+.rv-card .en{font-size:26px;font-weight:700;line-height:1.3}
+.rv-card .ko{font-size:16px}
+.rv-card .ex{font-size:14px;color:var(--muted);font-style:italic}
+.grades{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.grades button{padding:14px 0;border-radius:12px;font-weight:700;color:#fff}
+.g-know{background:var(--good)} .g-unsure{background:var(--warn)} .g-forgot{background:var(--bad)}
+.plist{display:flex;flex-direction:column;gap:6px}
+.plist div{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.pill{font-size:11px;padding:1px 7px;border-radius:9px;background:var(--soft);color:var(--muted);white-space:nowrap}
+
+/* 기록 */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stat .v{font-size:24px;font-weight:700} .stat .k{font-size:12px;color:var(--muted)}
+.chart{display:flex;align-items:flex-end;gap:4px;height:120px;padding-top:8px}
+.chart .col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;min-width:0}
+.chart .bar{width:100%;max-width:22px;background:var(--me);border-radius:4px 4px 0 0;min-height:2px}
+.chart .lv{font-size:10px;color:var(--muted);margin-top:2px}
+.sess{padding:12px 0;border-bottom:1px solid var(--line)}
+.sess .h{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.sess .d{font-size:13px;color:var(--muted)}
+.sess .detail{font-size:14px;margin-top:8px}
+.today{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:6px}
+.today i{display:block;height:100%;background:var(--accent)}
+
+/* 설정 */
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-size:14px;font-weight:600}
+.switch{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.switch input{width:auto;transform:scale(1.3)}
+.toast{position:fixed;left:50%;bottom:110px;transform:translateX(-50%);background:var(--ink);color:var(--bg);
+  padding:10px 16px;border-radius:12px;font-size:14px;z-index:9;max-width:90%;text-align:center}
+.mockbadge{position:fixed;bottom:64px;left:6px;background:var(--warn);color:#fff;font-size:11px;padding:2px 8px;border-radius:8px;z-index:9}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- 로그인 -->
+  <section id="login" class="hidden">
+    <h1>💬 영어 친구</h1>
+    <p class="muted">원어민과 일상 대화를 이어 가는 그날까지, 매일 20분.</p>
+    <input id="lg-email" type="email" placeholder="이메일" autocomplete="username">
+    <input id="lg-pw" type="password" placeholder="비밀번호" autocomplete="current-password">
+    <button class="btn" id="lg-btn">로그인</button>
+    <p id="lg-err" class="small" style="color:var(--bad)"></p>
+  </section>
+
+  <!-- 대화 -->
+  <section id="v-chat" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0">
+    <div class="topbar">
+      <div class="avatar" id="av">E</div>
+      <div class="who"><div class="name" id="fname">Emma</div><div class="sub" id="fsub">오늘의 세션</div></div>
+      <div class="timer hidden" id="timer"><span id="tm">0:00</span> / <span id="tg">20</span>분<div class="bar"><i id="tbar"></i></div></div>
+    </div>
+    <div id="start"></div>
+    <div id="chat" class="hidden">
+      <div id="log"></div>
+      <div class="controls">
+        <div id="interim"></div>
+        <div class="ctlrow">
+          <button class="side" id="langbtn" title="인식 언어 전환">EN</button>
+          <button id="mic" aria-label="말하기">🎤</button>
+          <button class="side" id="hfbtn" title="핸즈프리">🖐️</button>
+        </div>
+        <form class="textrow" id="txtform">
+          <input id="txt" placeholder="조용히 못 말할 땐 여기에 입력" autocomplete="off" enterkeyhint="send">
+          <button class="btn small" type="submit">보내기</button>
+        </form>
+        <div class="ctlmeta"><span class="muted" id="turninfo"></span><button id="endbtn">오늘은 여기까지 (마무리)</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 복습 -->
+  <section id="v-review" class="view hidden"></section>
+  <!-- 기록 -->
+  <section id="v-history" class="view hidden"></section>
+  <!-- 설정 -->
+  <section id="v-settings" class="view hidden"></section>
+
+  <nav class="tabs hidden" id="tabs">
+    <button data-tab="chat" class="on"><span class="ic">💬</span>대화</button>
+    <button data-tab="review"><span class="ic">🔁</span><span>복습<span class="badge hidden" id="duebadge"></span></span></button>
+    <button data-tab="history"><span class="ic">📈</span>기록</button>
+    <button data-tab="settings"><span class="ic">⚙️</span>설정</button>
+  </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// ═════════════════════════ 설정값 (여기만 바꾸면 됨) ═════════════════════════
+// anon(publishable) 키는 공개돼도 되는 키다. AI API 키는 절대 여기에 넣지 않는다.
+const CONFIG = {
+  SUPABASE_URL: "https://YOUR-PROJECT-REF.supabase.co",
+  SUPABASE_ANON_KEY: "YOUR-SUPABASE-ANON-OR-PUBLISHABLE-KEY",
+};
+const MOCK = /[?&]mock=1/.test(location.search) || CONFIG.SUPABASE_URL.includes("YOUR-");
+
+// ═════════════════════════ 공용 ═════════════════════════
+const $ = (s, el = document) => el.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const IS_ANDROID = /Android/i.test(navigator.userAgent);
+const LS = {
+  get(k, d) { try { const v = localStorage.getItem("ef." + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("ef." + k, JSON.stringify(v)); } catch {} },
+  del(k) { try { localStorage.removeItem("ef." + k); } catch {} },
+};
+function toast(msg, ms = 2600) {
+  const t = document.createElement("div"); t.className = "toast"; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), ms);
+}
+/** 한국 시간 기준 자정 (offsetDays일 뒤) */
+function kstDayStart(offsetDays = 0) {
+  const k = new Date(Date.now() + 9 * 3600e3); k.setUTCHours(0, 0, 0, 0);
+  return new Date(k.getTime() - 9 * 3600e3 + offsetDays * 86400e3);
+}
+const fmtDate = (iso) => new Date(iso).toLocaleString("ko-KR", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" });
+
+const SCENARIOS_KO = ["자기소개 / 하는 일 설명", "하루 일과, 주말에 한 일", "가족 이야기", "취미 (게임, 맛집, 여행)",
+  "식당에서 주문·요청·계산", "길 묻기, 교통", "호텔·공항 체크인", "제주 소개하기",
+  "내 일 설명하기 — 식당 마케팅, 인플루언서, 리뷰", "되묻기·시간 벌기", "의견 말하기, 맞장구, 대화 이어가기", "전화·메시지로 예약하기"];
+const LEVEL_INFO = { 1: ["거의 처음", 0.85], 2: ["짧은 답 가능", 0.88], 3: ["짧은 대화 가능", 0.92], 4: ["일상 대화 조금", 0.96], 5: ["목표 도달", 1.0] };
+const MODE_KO = { free: "자유 수다", scenario: "시나리오", diagnosis: "레벨 진단" };
+const DEFAULT_SETTINGS = {
+  friend_name: "Emma",
+  persona: "밝고 호기심 많고, 맛있는 음식과 여행 이야기를 좋아하는 친구",
+  about_me: "40대 한국인 남성, 제주에 산다. 식당 위주로 온라인 마케팅 일을 한다. 아내와 초등학생 딸이 있다.\n목표: 원어민과 일상 대화를 버벅이더라도 끊기지 않고 이어 갈 수 있는 수준.",
+  level: 1, level_mode: "auto", goal_min: 20, session_mode: "alternate", scenario_index: 0, diagnosed: false,
+  rate: "auto", show_ko: true, delay_text: false, hands_free: false,
+};
+
+// ═════════════════════════ 음성: 듣기 (STT) ═════════════════════════
+// 나중에 클라우드 음성 인식으로 바꿀 땐 이 listen()만 교체하면 된다.
+const STT = {
+  supported: !!(window.SpeechRecognition || window.webkitSpeechRecognition),
+  current: null,
+  /** 말을 듣고 글자로. silenceMs>0이면 그만큼 조용할 때 자동 종료. 취소되면 null. */
+  listen({ lang = "en-US", silenceMs = 0, maxMs = 60000, onInterim } = {}) {
+    return new Promise((resolve) => {
+      const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const rec = new R();
+      rec.lang = lang; rec.interimResults = true; rec.maxAlternatives = 1;
+      rec.continuous = !IS_ANDROID; // 안드로이드 크롬은 continuous에서 결과가 중복됨 → 끊기면 다시 시작
+      let committed = "", finalText = "", interim = "", done = false, silenceT = null;
+      const deadline = Date.now() + maxMs;
+      const text = () => [committed, finalText, interim].join(" ").replace(/\s+/g, " ").trim();
+      const finish = (val) => {
+        if (done) return; done = true;
+        clearTimeout(silenceT); clearTimeout(maxT); STT.current = null;
+        try { rec.abort(); } catch {}
+        resolve(val === undefined ? text() : val);
+      };
+      rec.onresult = (e) => {
+        let f = "", i = "";
+        for (let k = 0; k < e.results.length; k++) {
+          const t = e.results[k][0].transcript;
+          if (e.results[k].isFinal) f += t + " "; else i += t;
+        }
+        finalText = f.trim(); interim = i;
+        onInterim?.(text());
+        if (silenceMs) { clearTimeout(silenceT); silenceT = setTimeout(() => finish(), silenceMs); }
+      };
+      rec.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") { toast("마이크 권한이 필요해요. 주소창 옆 자물쇠 → 마이크 허용"); finish(null); }
+        else if (e.error === "language-not-supported") { toast("이 브라우저는 이 언어 인식을 지원하지 않아요"); finish(null); }
+      };
+      rec.onend = () => {
+        if (done) return;
+        const got = text();
+        // 아직 아무 말도 안 했으면 계속 듣기. 안드로이드는 말 사이에 끊기므로 침묵 타이머가 끝낼 때까지 이어 듣기.
+        if (Date.now() < deadline && (!got || (IS_ANDROID && silenceMs && silenceT))) {
+          committed = got; finalText = ""; interim = "";
+          try { rec.start(); return; } catch {}
+        }
+        finish();
+      };
+      const maxT = setTimeout(() => finish(), maxMs);
+      STT.current = { stop: () => finish(), cancel: () => finish(null) };
+      try { rec.start(); } catch { finish(null); }
+    });
+  },
+  stop() { STT.current?.stop(); },
+  cancel() { STT.current?.cancel(); },
+};
+
+// ═════════════════════════ 음성: 말하기 (TTS) ═════════════════════════
+// 나중에 클라우드 TTS로 바꿀 땐 이 speak()만 교체하면 된다.
+const TTS = {
+  voices: [],
+  load() {
+    const all = speechSynthesis.getVoices();
+    TTS.voices = all.filter((v) => /^en[-_]/i.test(v.lang));
+  },
+  score(v) {
+    let s = 0; const n = v.name;
+    if (/natural|neural/i.test(n)) s += 6;
+    if (/Google US English/i.test(n)) s += 5;
+    if (/Samantha|Ava|Allison|Aria|Jenny|Guy|Zoe|Evan|Nathan/i.test(n)) s += 3;
+    if (/premium|enhanced/i.test(n)) s += 2;
+    if (/en[-_]US/i.test(v.lang)) s += 2;
+    if (/compact|eSpeak/i.test(n)) s -= 4;
+    return s;
+  },
+  pick() {
+    const want = LS.get("voice", "");
+    return TTS.voices.find((v) => v.name === want) || [...TTS.voices].sort((a, b) => TTS.score(b) - TTS.score(a))[0] || null;
+  },
+  unlocked: false,
+  unlock() { // iOS: 사용자 탭 안에서 한 번 말해 둬야 이후 자동 재생됨
+    if (TTS.unlocked || !window.speechSynthesis) return;
+    const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); TTS.unlocked = true;
+  },
+  speaking: false,
+  speak(text, rate = 0.9) {
+    return new Promise((resolve) => {
+      if (!window.speechSynthesis || !text) return resolve();
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(String(text).replace(/[*_#"“”]/g, ""));
+      const v = TTS.pick(); if (v) { u.voice = v; u.lang = v.lang; } else u.lang = "en-US";
+      u.rate = rate;
+      let done = false;
+      const end = () => { if (done) return; done = true; TTS.speaking = false; clearTimeout(guard); resolve(); };
+      u.onend = end; u.onerror = end;
+      const guard = setTimeout(end, 3000 + (text.length * 90) / rate); // 일부 브라우저는 onend가 안 옴
+      TTS.speaking = true;
+      speechSynthesis.speak(u);
+    });
+  },
+  stop() { try { speechSynthesis.cancel(); } catch {} TTS.speaking = false; },
+};
+if (window.speechSynthesis) { TTS.load(); speechSynthesis.onvoiceschanged = TTS.load; }
+
+// ═════════════════════════ 백엔드 (Supabase / 목업) ═════════════════════════
+function realBackend() {
+  const sb = supabase.createClient(CONFIG.SUPABASE_URL, CONFIG.SUPABASE_ANON_KEY);
+  const unwrap = ({ data, error }) => { if (error) throw error; return data; };
+  return {
+    async session() { return (await sb.auth.getSession()).data.session; },
+    async signIn(email, password) { const { error } = await sb.auth.signInWithPassword({ email, password }); if (error) throw error; },
+    async signOut() { await sb.auth.signOut(); },
+    async loadSettings() { const { data } = await sb.from("settings").select("data").maybeSingle(); return data?.data ?? {}; },
+    async saveSettings(data) { const s = await this.session(); unwrap(await sb.from("settings").upsert({ user_id: s.user.id, data, updated_at: new Date().toISOString() })); },
+    async call(action, body = {}) {
+      const { data, error } = await sb.functions.invoke("chat", { body: { action, ...body } });
+      if (error) {
+        let msg = error.message;
+        try { const j = await error.context.json(); if (j?.error) msg = j.error; } catch {}
+        throw new Error(msg);
+      }
+      return data;
+    },
+    async sessions(limit = 60) { return unwrap(await sb.from("sessions").select("*").order("started_at", { ascending: false }).limit(limit)); },
+    async getSession(id) { return unwrap(await sb.from("sessions").select("*").eq("id", id).maybeSingle()); },
+    async messages(sessionId) { return unwrap(await sb.from("messages").select("*").eq("session_id", sessionId).order("created_at")); },
+    async duePhrases() { return unwrap(await sb.from("phrases").select("*").lte("next_review_at", new Date().toISOString()).order("next_review_at").limit(50)); },
+    async allPhrases() { return unwrap(await sb.from("phrases").select("*").order("created_at", { ascending: false }).limit(200)); },
+    async updatePhrase(id, patch) { unwrap(await sb.from("phrases").update(patch).eq("id", id)); },
+  };
+}
+
+function mockBackend() {
+  // 화면 확인용 가짜 백엔드 (브라우저 저장소에만 저장, AI 대신 정해진 답)
+  const db = LS.get("mock.db", { settings: {}, sessions: [], messages: [], phrases: [] });
+  const save = () => LS.set("mock.db", db);
+  const uid = () => Math.random().toString(36).slice(2);
+  const ko = (t) => /[가-힣]/.test(t);
+  return {
+    async session() { return LS.get("mock.login", false) ? { user: { id: "mock", email: "me@example.com" } } : null; },
+    async signIn() { LS.set("mock.login", true); },
+    async signOut() { LS.del("mock.login"); },
+    async loadSettings() { return db.settings; },
+    async saveSettings(d) { db.settings = d; save(); },
+    async call(action, body) {
+      await sleep(500);
+      const s = { ...DEFAULT_SETTINGS, ...db.settings };
+      if (action === "start") {
+        const mode = !s.diagnosed ? "diagnosis" : (db.sessions[0]?.mode === "scenario" ? "free" : "scenario");
+        const sess = { id: uid(), started_at: new Date().toISOString(), ended_at: null, minutes: 0, mode, scenario: mode === "scenario" ? s.scenario_index % 12 : null, level: s.level, user_turns: 0, english_turns: 0, summary_json: null };
+        db.sessions.unshift(sess);
+        const reply = { say: "Hey! Good to see you. How was your day?", ko: "안녕! 반가워. 오늘 하루 어땠어?", repeat: "", recast: null, phrases: [], user_spoke_english: false };
+        db.messages.push({ session_id: sess.id, role: "assistant", text: reply.say, ko: reply.ko, created_at: new Date().toISOString() });
+        save();
+        const warmup = db.phrases.slice(0, 3);
+        return { session: sess, reply, warmup, scenario_title: sess.scenario !== null ? `${sess.scenario + 1}. ${SCENARIOS_KO[sess.scenario]}` : null, goal_min: mode === "diagnosis" ? 5 : s.goal_min };
+      }
+      if (action === "turn") {
+        const sess = db.sessions.find((x) => x.id === body.session_id);
+        const t = body.text; const en = !ko(t);
+        let reply;
+        if (!en) reply = { say: "Oh nice! You can say, I went to the market today.", ko: "오 좋네! 이렇게 말하면 돼: 오늘 시장에 갔어.", repeat: "I went to the market today.", recast: null, phrases: ["went to the market"], user_spoke_english: false };
+        else if (/\bgo\b.*yesterday|yesterday.*\bgo\b/i.test(t)) reply = { say: "Oh, you went there yesterday? For work?", ko: "오, 어제 거기 갔어? 일 때문에?", repeat: "", recast: { mine: t, better: t.replace(/\bgo\b/i, "went"), note_ko: "어제 일은 과거형 went" }, phrases: ["For work?"], user_spoke_english: true };
+        else reply = { say: "That sounds fun! What did you eat?", ko: "재밌었겠다! 뭐 먹었어?", repeat: "", recast: null, phrases: ["That sounds fun!"], user_spoke_english: true };
+        sess.user_turns++; if (reply.user_spoke_english) sess.english_turns++;
+        sess.minutes = Math.round((Date.now() - new Date(sess.started_at)) / 6000) / 10;
+        db.messages.push({ session_id: sess.id, role: "user", text: t, spoke_english: en, created_at: new Date().toISOString() });
+        db.messages.push({ session_id: sess.id, role: "assistant", text: reply.say, ko: reply.ko, repeat: reply.repeat, recast: reply.recast, created_at: new Date().toISOString() });
+        save();
+        return { reply, user_turns: sess.user_turns, english_turns: sess.english_turns, minutes: sess.minutes };
+      }
+      if (action === "wrapup") {
+        const sess = db.sessions.find((x) => x.id === body.session_id);
+        const summary = {
+          say: "That was fun! Talk to you tomorrow.", ko: "재밌었어! 내일 또 얘기하자.",
+          phrases: [
+            { english: "That sounds fun!", korean: "재밌겠다!", example: "A trip to Seoul? That sounds fun!" },
+            { english: "For work?", korean: "일 때문에?", example: "You went to Seoul? For work?" },
+            { english: "I went to the market.", korean: "시장에 갔어.", example: "I went to the market this morning." },
+            { english: "How was your day?", korean: "오늘 어땠어?", example: "Hey, how was your day?" },
+            { english: "Let me think...", korean: "음, 생각해 볼게", example: "Hmm, let me think..." },
+          ],
+          fixes: [{ mine: "I go to Seoul yesterday", better: "I went to Seoul yesterday", note_ko: "과거 일은 went" }],
+          tomorrow: { english: "I went to a new restaurant yesterday.", korean: "어제 새 식당에 갔어." },
+          level: { level: 2, next_ok: false, reason_ko: "짧은 답은 영어로 잘 하지만 과거형이 흔들림" },
+          level_before: sess.level, level_after: sess.mode === "diagnosis" ? 2 : sess.level,
+          english_ratio: sess.user_turns ? sess.english_turns / sess.user_turns : 0,
+        };
+        sess.ended_at = new Date().toISOString(); sess.summary_json = summary;
+        const next = kstDayStart(1).toISOString();
+        for (const p of [...summary.phrases, { ...summary.tomorrow, example: null }]) {
+          if (!db.phrases.some((x) => x.english.toLowerCase() === p.english.toLowerCase()))
+            db.phrases.unshift({ id: uid(), english: p.english, korean: p.korean, example: p.example, status: "new", interval_days: 1, next_review_at: LS.get("mock.dueNow", false) ? new Date().toISOString() : next, created_at: new Date().toISOString() });
+        }
+        if (sess.mode === "diagnosis") { db.settings = { ...s, diagnosed: true, level: 2 }; }
+        if (sess.mode === "scenario") db.settings = { ...s, scenario_index: s.scenario_index + 1 };
+        save();
+        return { summary, settings: db.settings };
+      }
+    },
+    async sessions() { return db.sessions; },
+    async getSession(id) { return db.sessions.find((x) => x.id === id) ?? null; },
+    async messages(id) { return db.messages.filter((m) => m.session_id === id); },
+    async duePhrases() { const now = Date.now(); return db.phrases.filter((p) => new Date(p.next_review_at) <= now); },
+    async allPhrases() { return db.phrases; },
+    async updatePhrase(id, patch) { Object.assign(db.phrases.find((p) => p.id === id), patch); save(); },
+  };
+}
+
+const api = MOCK ? mockBackend() : realBackend();
+
+// ═════════════════════════ 상태 ═════════════════════════
+const state = {
+  settings: { ...DEFAULT_SETTINGS },
+  session: null, goalMin: 20, scenarioTitle: null,
+  lang: "en-US", busy: false, listening: false, candidates: [],
+  lastUserRow: null, timerT: null, autoWrapped: false,
+};
+const S = () => state.settings;
+const rate = () => (S().rate === "auto" ? LEVEL_INFO[S().level]?.[1] ?? 0.9 : Number(S().rate));
+
+async function loadSettings() {
+  state.settings = { ...DEFAULT_SETTINGS, ...(await api.loadSettings()), ...LS.get("local", {}) };
+}
+async function saveSettings() {
+  const { rate: r, show_ko, delay_text, hands_free, ...shared } = state.settings;
+  LS.set("local", { rate: r, show_ko, delay_text, hands_free }); // 기기별 설정 (폰/PC 다를 수 있음)
+  await api.saveSettings({ ...shared, rate: r, show_ko, delay_text, hands_free });
+}
+
+// ═════════════════════════ 탭 ═════════════════════════
+const VIEWS = { chat: "#v-chat", review: "#v-review", history: "#v-history", settings: "#v-settings" };
+function showTab(name) {
+  for (const [k, sel] of Object.entries(VIEWS)) $(sel).classList.toggle("hidden", k !== name);
+  document.querySelectorAll("nav.tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === name));
+  if (name !== "chat") { STT.cancel(); TTS.stop(); }
+  if (name === "review") renderReview();
+  if (name === "history") renderHistory();
+  if (name === "settings") renderSettings();
+  if (name === "chat" && !state.session) renderStart();
+}
+document.querySelectorAll("nav.tabs button").forEach((b) => (b.onclick = () => showTab(b.dataset.tab)));
+
+async function refreshDueBadge() {
+  try {
+    const n = (await api.duePhrases()).length;
+    const b = $("#duebadge"); b.textContent = n; b.classList.toggle("hidden", !n);
+  } catch {}
+}
+
+// ═════════════════════════ 대화: 시작 화면 ═════════════════════════
+function headerInfo() {
+  $("#fname").textContent = S().friend_name;
+  $("#av").textContent = (S().friend_name || "E")[0].toUpperCase();
+}
+
+async function renderStart() {
+  headerInfo();
+  $("#chat").classList.add("hidden"); $("#start").classList.remove("hidden"); $("#timer").classList.add("hidden");
+  const s = S();
+  let nextMode = !s.diagnosed ? "diagnosis" : s.session_mode;
+  let todayMin = 0, resumable = null;
+  try {
+    const list = await api.sessions(30);
+    const since = kstDayStart(0);
+    todayMin = list.filter((x) => new Date(x.started_at) >= since).reduce((a, x) => a + Number(x.minutes || 0), 0);
+    if (nextMode === "alternate") nextMode = list.find((x) => x.mode !== "diagnosis")?.mode === "scenario" ? "free" : "scenario";
+    const open = list.find((x) => !x.ended_at);
+    if (open && Date.now() - new Date(open.started_at) < 3 * 3600e3) resumable = open;
+  } catch (e) { if (nextMode === "alternate") nextMode = "scenario"; }
+  const goal = nextMode === "diagnosis" ? 5 : s.goal_min;
+  const what = nextMode === "diagnosis" ? "첫 세션은 5분 자유 대화로 레벨을 진단해요."
+    : nextMode === "scenario" ? `시나리오 ${s.scenario_index % 12 + 1}. ${SCENARIOS_KO[s.scenario_index % 12]}` : "자유 수다 — 오늘 있었던 일 아무거나";
+  $("#fsub").textContent = `L${s.level} · ${LEVEL_INFO[s.level][0]}`;
+  $("#start").innerHTML = `
+    <div class="card">
+      <div class="muted small">오늘의 세션 · ${MODE_KO[nextMode]} · ${goal}분</div>
+      <div class="big" style="margin:4px 0 8px">${esc(what)}</div>
+      <div class="small muted">워밍업 2분 → 대화 → 마무리 정리 (오늘 표현 5개 · 고칠 점 3개 · 내일 문장 1개)</div>
+      <div class="small" style="margin-top:10px">오늘 말한 시간 <b>${Math.round(todayMin)}</b> / ${s.goal_min}분</div>
+      <div class="today"><i style="width:${Math.min(100, (todayMin / s.goal_min) * 100)}%"></i></div>
+    </div>
+    <button class="btn" id="startbtn" style="padding:16px;font-size:18px">🎤 시작하기</button>
+    ${resumable ? `<button class="btn ghost" id="resumebtn">이어서 하기 (${fmtDate(resumable.started_at)} 시작)</button>` : ""}
+    ${!STT.supported ? `<div class="card small">이 브라우저는 음성 인식을 지원하지 않아요. 크롬을 권장합니다. 지금은 글자로 입력할 수 있어요.</div>` : ""}
+    <div class="small muted">팁: 막히면 <b>한/영</b> 버튼을 눌러 한국어로 말해도 돼요. 같은 말을 내일은 영어로 해 보기.</div>`;
+  $("#startbtn").onclick = startSession;
+  if (resumable) $("#resumebtn").onclick = () => resumeSession(resumable);
+}
+
+function enterChat() {
+  $("#start").classList.add("hidden"); $("#chat").classList.remove("hidden"); $("#timer").classList.remove("hidden");
+  $("#log").innerHTML = ""; state.candidates = []; state.autoWrapped = false; state.lastUserRow = null;
+  const sess = state.session;
+  $("#fsub").textContent = `L${sess.level} · ${MODE_KO[sess.mode]}${state.scenarioTitle ? " · " + state.scenarioTitle : ""}`;
+  $("#tg").textContent = state.goalMin;
+  updateLangBtn(); updateHfBtn(); updateTurnInfo(sess.user_turns, sess.english_turns);
+  clearInterval(state.timerT);
+  state.timerT = setInterval(tick, 1000); tick();
+}
+function tick() {
+  if (!state.session) return;
+  const sec = Math.max(0, (Date.now() - new Date(state.session.started_at)) / 1000);
+  $("#tm").textContent = `${Math.floor(sec / 60)}:${String(Math.floor(sec % 60)).padStart(2, "0")}`;
+  $("#tbar").style.width = Math.min(100, (sec / 60 / state.goalMin) * 100) + "%";
+}
+const elapsedMin = () => (state.session ? (Date.now() - new Date(state.session.started_at)) / 60000 : 0);
+
+async function startSession() {
+  TTS.unlock();
+  const btn = $("#startbtn"); btn.disabled = true; btn.textContent = "준비 중…";
+  try {
+    const r = await api.call("start");
+    state.session = r.session; state.goalMin = r.goal_min; state.scenarioTitle = r.scenario_title;
+    LS.set("session", r.session.id);
+    enterChat();
+    if (r.warmup?.length) await runWarmup(r.warmup);
+    await showAiReply(r.reply);
+  } catch (e) {
+    toast("시작 실패: " + e.message, 4000); btn.disabled = false; btn.textContent = "🎤 시작하기";
+  }
+}
+
+async function resumeSession(sess) {
+  TTS.unlock();
+  state.session = sess; state.goalMin = sess.mode === "diagnosis" ? 5 : S().goal_min;
+  state.scenarioTitle = sess.scenario !== null && sess.scenario !== undefined ? `${sess.scenario + 1}. ${SCENARIOS_KO[sess.scenario]}` : null;
+  enterChat();
+  const msgs = await api.messages(sess.id);
+  for (const m of msgs) {
+    if (m.role === "user") { state.lastUserRow = addUserBubble(m.text, m.spoke_english === false ? "ko" : "en"); }
+    else { addAiBubble({ say: m.text, ko: m.ko, repeat: m.repeat }, { instant: true }); if (m.recast && state.lastUserRow) attachRecast(state.lastUserRow, m.recast); }
+  }
+  addSys("이어서 해요. 마이크를 눌러 말해 보세요.");
+}
+
+// ═════════════════════════ 대화: 말풍선 ═════════════════════════
+function scrollLog() { const l = $("#log"); l.scrollTop = l.scrollHeight; }
+function addSys(text) { const d = document.createElement("div"); d.className = "sys"; d.textContent = text; $("#log").appendChild(d); scrollLog(); return d; }
+
+function addAiBubble(r, { instant = false } = {}) {
+  const row = document.createElement("div"); row.className = "row ai";
+  const hideText = !instant && S().delay_text;
+  const koTap = !S().show_ko || hideText;
+  row.innerHTML = `<div class="bubble">
+      <div class="en${hideText ? " wait" : ""}">${esc(r.say)}</div>
+      ${r.ko ? `<div class="ko${koTap ? " tap" : ""}">${esc(r.ko)}</div>` : ""}
+      <div class="tools"><button data-a="say">🔊 다시</button>${r.ko && koTap ? `<button data-a="ko">뜻</button>` : ""}</div>
+      ${r.repeat ? `<div class="repeat"><span class="t">${esc(r.repeat)}</span><button data-a="rep" title="다시 듣기">🔁</button></div>` : ""}
+    </div>`;
+  const en = $(".en", row), ko = $(".ko", row);
+  const revealKo = () => { en.classList.remove("wait"); ko?.classList.remove("tap"); };
+  row.addEventListener("click", (e) => {
+    const a = e.target.closest("button")?.dataset.a;
+    if (a === "say") return TTS.speak(r.say, rate());
+    if (a === "rep") return TTS.speak(r.repeat, Math.max(0.75, rate() - 0.08));
+    if (a === "ko" || e.target.closest(".bubble")) revealKo();
+  });
+  $("#log").appendChild(row); scrollLog();
+  return { row, revealText: () => en.classList.remove("wait") };
+}
+
+function addUserBubble(text, lang) {
+  const row = document.createElement("div"); row.className = "row me";
+  row.innerHTML = `<div class="bubble">${esc(text)}</div><div class="lang">${lang === "ko" ? "한국어" : ""}</div>`;
+  $("#log").appendChild(row); scrollLog();
+  return row;
+}
+function attachRecast(row, rc) {
+  if (!rc?.better) return;
+  const d = document.createElement("div"); d.className = "recast";
+  d.innerHTML = `→ 더 자연스럽게: <b>${esc(rc.better)}</b>${rc.note_ko ? `<br><span>${esc(rc.note_ko)}</span>` : ""}`;
+  d.onclick = () => TTS.speak(rc.better, rate());
+  row.appendChild(d); scrollLog();
+}
+function addTyping() {
+  const row = document.createElement("div"); row.className = "row ai";
+  row.innerHTML = `<div class="bubble typing"><i></i><i></i><i></i></div>`;
+  $("#log").appendChild(row); scrollLog(); return row;
+}
+
+async function showAiReply(r) {
+  const b = addAiBubble(r);
+  if (r.phrases?.length) state.candidates.push(...r.phrases);
+  await TTS.speak(r.say, rate());
+  if (S().delay_text) { await sleep(1000); b.revealText(); }
+  maybeHandsFree();
+}
+
+// ═════════════════════════ 대화: 말하기·보내기 ═════════════════════════
+function updateLangBtn() { const b = $("#langbtn"); b.textContent = state.lang === "en-US" ? "EN" : "한"; b.classList.toggle("on", state.lang === "ko-KR"); }
+function updateHfBtn() { $("#hfbtn").classList.toggle("on", !!S().hands_free); }
+function updateTurnInfo(u, e) { $("#turninfo").textContent = u ? `영어로 답한 비율 ${Math.round((e / u) * 100)}% (${e}/${u})` : ""; }
+function setMic(mode) { // idle | listening | busy
+  const m = $("#mic"); m.classList.toggle("listening", mode === "listening"); m.classList.toggle("busy", mode === "busy");
+  m.textContent = mode === "listening" ? "⏹" : mode === "busy" ? "…" : "🎤";
+}
+
+$("#langbtn").onclick = () => {
+  state.lang = state.lang === "en-US" ? "ko-KR" : "en-US"; updateLangBtn();
+  toast(state.lang === "ko-KR" ? "한국어로 들을게요" : "영어로 들을게요", 1200);
+  if (state.listening) { STT.cancel(); setTimeout(() => listenAndSend(), 200); }
+};
+$("#hfbtn").onclick = async () => {
+  state.settings.hands_free = !S().hands_free; updateHfBtn();
+  toast(S().hands_free ? "핸즈프리 켬 — 친구가 말을 끝내면 자동으로 들어요 (2초 조용하면 전송)" : "핸즈프리 끔", 2500);
+  saveSettings().catch(() => {});
+  if (S().hands_free && !state.busy && !TTS.speaking && !state.listening) listenAndSend();
+};
+$("#mic").onclick = () => {
+  TTS.unlock();
+  if (state.busy) return;
+  if (state.listening) { STT.stop(); return; }
+  TTS.stop();
+  if (!STT.supported) { $("#txt").focus(); toast("음성 인식이 안 되는 브라우저예요. 글자로 입력해 주세요."); return; }
+  listenAndSend();
+};
+$("#txtform").onsubmit = (e) => {
+  e.preventDefault(); TTS.unlock();
+  const t = $("#txt").value.trim(); if (!t || state.busy) return;
+  $("#txt").value = ""; STT.cancel(); TTS.stop();
+  sendUser(t, /[가-힣]/.test(t) ? "ko" : "en");
+};
+$("#endbtn").onclick = () => { if (!state.busy) wrapup(); };
+
+async function listenAndSend() {
+  if (!state.session || state.listening) return;
+  state.listening = true; setMic("listening");
+  const hf = !!S().hands_free;
+  $("#interim").textContent = hf ? "듣는 중… (2초 조용하면 보내요)" : "듣는 중… 다 말하면 ⏹ 누르기";
+  const text = await STT.listen({
+    lang: state.lang, silenceMs: hf ? 2000 : 0, maxMs: hf ? 30000 : 60000,
+    onInterim: (t) => ($("#interim").textContent = t),
+  });
+  state.listening = false; setMic("idle"); $("#interim").textContent = "";
+  if (text === null) return;
+  if (!text) { if (hf) addSys("말이 안 들려서 멈췄어요. 마이크를 누르면 다시 들어요."); return; }
+  sendUser(text, state.lang === "ko-KR" ? "ko" : "en");
+}
+
+function maybeHandsFree() {
+  if (S().hands_free && state.session && !state.busy && STT.supported && !$("#v-chat").classList.contains("hidden")) listenAndSend();
+}
+
+const END_RE = /^\s*(끝|그만|오늘은 여기까지|that'?s it for today)[.!\s]*$/i;
+
+async function sendUser(text, lang) {
+  if (END_RE.test(text)) return wrapup();
+  state.lastUserRow = addUserBubble(text, lang);
+  state.busy = true; setMic("busy");
+  const typing = addTyping();
+  const myRow = state.lastUserRow;
+  let r;
+  try {
+    r = await api.call("turn", { session_id: state.session.id, text, input_lang: lang });
+  } catch (e) {
+    typing.remove(); state.busy = false; setMic("idle");
+    addSys("전송 실패: " + e.message); return;
+  }
+  typing.remove(); state.busy = false; setMic("idle");
+  if (r.reply.recast) attachRecast(myRow, r.reply.recast);
+  updateTurnInfo(r.user_turns, r.english_turns);
+  state.session.user_turns = r.user_turns; state.session.english_turns = r.english_turns;
+  const timeUp = elapsedMin() >= state.goalMin;
+  if (timeUp && !state.autoWrapped) {
+    state.autoWrapped = true;
+    const keep = S().hands_free; state.settings.hands_free = false; // 마무리 전엔 자동 듣기 멈춤
+    await showAiReply(r.reply);
+    state.settings.hands_free = keep;
+    return wrapup();
+  }
+  await showAiReply(r.reply);
+}
+
+// ═════════════════════════ 워밍업 ═════════════════════════
+function similarity(a, b) {
+  const w = (s) => s.toLowerCase().replace(/[^a-z0-9' ]/g, " ").split(/\s+/).filter(Boolean);
+  const A = w(a), B = new Set(w(b)); if (!A.length) return 0;
+  return A.filter((x) => B.has(x)).length / A.length;
+}
+
+async function runWarmup(list) {
+  addSys(`🔥 워밍업 — 지난 표현 ${list.length}개 듣고 따라 말하기`);
+  const wrap = document.createElement("div"); wrap.className = "warm"; $("#log").appendChild(wrap);
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i];
+    const res = await new Promise(async (resolve) => {
+      wrap.innerHTML = `<div class="card">
+        <div class="small muted">${i + 1} / ${list.length}</div>
+        <div class="en">${esc(p.english)}</div>
+        <div class="muted small">${esc(p.korean || "")}</div>
+        <div class="heard"></div>
+        <div class="acts">
+          <button class="btn ghost small" data-a="play">🔊 듣기</button>
+          <button class="btn small" data-a="say">🎤 따라 말하기</button>
+          <button class="btn ghost small" data-a="next">${i + 1 < list.length ? "다음 ▶" : "대화 시작 ▶"}</button>
+          <button class="btn ghost small" data-a="skip">건너뛰기</button>
+        </div></div>`;
+      scrollLog();
+      const heard = $(".heard", wrap);
+      const tryRepeat = async () => {
+        if (!STT.supported) return;
+        heard.textContent = "듣는 중…";
+        const t = await STT.listen({ lang: "en-US", silenceMs: 1500, maxMs: 12000, onInterim: (x) => (heard.textContent = x) });
+        if (t === null) { heard.textContent = ""; return; }
+        const sc = similarity(p.english, t || "");
+        heard.innerHTML = t ? `${sc >= 0.7 ? "👍" : "🙂"} <span class="muted">${esc(t)}</span>` : "<span class='muted'>안 들렸어요</span>";
+        return sc;
+      };
+      wrap.onclick = async (e) => {
+        const a = e.target.closest("button")?.dataset.a;
+        if (a === "play") TTS.speak(p.english, rate());
+        if (a === "say") { TTS.stop(); tryRepeat(); }
+        if (a === "next") { STT.cancel(); resolve("next"); }
+        if (a === "skip") { STT.cancel(); resolve("skip"); }
+      };
+      await TTS.speak(p.english, rate());
+      if (S().hands_free) { await tryRepeat(); await sleep(1200); resolve("next"); }
+    });
+    if (res === "skip") break;
+  }
+  wrap.remove();
+  addSys("워밍업 끝! 이제 대화해요.");
+}
+
+// ═════════════════════════ 마무리 ═════════════════════════
+async function wrapup() {
+  if (!state.session) return;
+  STT.cancel(); TTS.stop();
+  state.busy = true; setMic("busy");
+  const typing = addTyping();
+  addSys("오늘 대화 정리 중…");
+  let r;
+  try {
+    r = await api.call("wrapup", { session_id: state.session.id, candidates: [...new Set(state.candidates)] });
+  } catch (e) {
+    typing.remove(); state.busy = false; setMic("idle"); addSys("정리 실패: " + e.message); return;
+  }
+  typing.remove();
+  const sm = r.summary;
+  if (r.settings) state.settings = { ...state.settings, ...r.settings, ...LS.get("local", {}) };
+  const lvChange = sm.level_after !== sm.level_before
+    ? `<div>🎉 레벨 변경: L${sm.level_before} → <b>L${sm.level_after}</b></div>` : "";
+  const box = document.createElement("div"); box.className = "summary";
+  box.innerHTML = `<div class="card">
+    <h3 style="margin-top:0">📝 오늘 정리</h3>
+    <div><b>오늘 쓸 만한 표현</b> <span class="small muted">(복습에 저장됨 · 탭하면 듣기)</span></div>
+    <ol>${sm.phrases.map((p) => `<li data-say="${esc(p.english)}"><b>${esc(p.english)}</b> — ${esc(p.korean)}<br><span class="small muted">${esc(p.example || "")}</span></li>`).join("")}</ol>
+    ${sm.fixes.length ? `<div><b>고칠 점</b></div><ol>${sm.fixes.map((f) => `<li data-say="${esc(f.better)}"><span class="muted" style="text-decoration:line-through">${esc(f.mine)}</span><br>→ <b>${esc(f.better)}</b><br><span class="small">${esc(f.note_ko)}</span></li>`).join("")}</ol>` : ""}
+    ${sm.tomorrow ? `<div><b>내일 써 볼 문장</b></div><div class="repeat" data-say="${esc(sm.tomorrow.english)}"><span class="t">${esc(sm.tomorrow.english)}<br><span class="small muted" style="font-weight:400">${esc(sm.tomorrow.korean)}</span></span><button>🔁</button></div>` : ""}
+    <div class="small" style="margin-top:8px">영어로 답한 비율 <b>${Math.round((sm.english_ratio || 0) * 100)}%</b> · 오늘 판정 L${sm.level.level} — ${esc(sm.level.reason_ko)}</div>
+    ${lvChange}
+    <button class="btn" id="donebtn" style="margin-top:10px">완료</button>
+  </div>`;
+  box.addEventListener("click", (e) => { const s = e.target.closest("[data-say]")?.dataset.say; if (s) TTS.speak(s, rate()); });
+  $("#log").appendChild(box); scrollLog();
+  state.busy = false; setMic("idle");
+  $("#donebtn").onclick = endSession;
+  LS.del("session");
+  refreshDueBadge();
+  await TTS.speak(sm.say, rate());
+  if (sm.tomorrow) { await sleep(500); await TTS.speak(sm.tomorrow.english, rate()); }
+}
+function endSession() {
+  clearInterval(state.timerT); state.session = null; TTS.stop(); STT.cancel();
+  renderStart();
+}
+
+// ═════════════════════════ 복습 ═════════════════════════
+const LADDER = [1, 3, 7, 18, 45, 112, 280];
+function schedule(p, grade) {
+  let iv = Number(p.interval_days) || 1;
+  if (grade === "know") iv = LADDER.find((x) => x > iv) ?? Math.round(iv * 2.5);
+  else if (grade === "forgot") iv = 1;
+  return {
+    interval_days: iv,
+    status: grade === "know" && iv >= 18 ? "known" : "learning",
+    next_review_at: kstDayStart(iv).toISOString(),
+  };
+}
+
+let reviewQueue = [];
+async function renderReview() {
+  const v = $("#v-review");
+  v.innerHTML = `<h2>복습</h2><p class="muted">불러오는 중…</p>`;
+  try { reviewQueue = await api.duePhrases(); } catch (e) { v.innerHTML = `<h2>복습</h2><p>불러오기 실패: ${esc(e.message)}</p>`; return; }
+  drawReviewCard();
+}
+async function drawReviewCard() {
+  const v = $("#v-review");
+  refreshDueBadge();
+  if (!reviewQueue.length) {
+    let all = [];
+    try { all = await api.allPhrases(); } catch {}
+    v.innerHTML = `<h2>복습</h2>
+      <div class="card" style="text-align:center;padding:28px 16px"><div style="font-size:40px">🎉</div><b>오늘 복습 끝!</b><div class="muted small">세션을 끝내면 새 표현이 내일 여기에 떠요.</div></div>
+      <h3>내 문장장 <span class="muted small">${all.length}개</span></h3>
+      <div class="plist">${all.map((p) => `<div data-say="${esc(p.english)}"><span><b>${esc(p.english)}</b><br><span class="muted">${esc(p.korean || "")}</span></span><span class="pill">${{ new: "새 표현", learning: "익히는 중", known: "앎" }[p.status]} · ${new Date(p.next_review_at).toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}</span></div>`).join("")}</div>`;
+    v.onclick = (e) => { const s = e.target.closest("[data-say]")?.dataset.say; if (s) TTS.speak(s, rate()); };
+    return;
+  }
+  const p = reviewQueue[0];
+  v.onclick = null;
+  v.innerHTML = `<h2>복습 <span class="muted small">남은 ${reviewQueue.length}개</span></h2>
+    <div class="card rv-card">
+      <div class="en">${esc(p.english)}</div>
+      <div class="acts" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        <button class="btn ghost small" id="rv-play">🔊 듣기</button>
+        <button class="btn small" id="rv-say">🎤 따라 말하기</button>
+        <button class="btn ghost small" id="rv-mean">뜻 보기</button>
+      </div>
+      <div class="heard" id="rv-heard"></div>
+      <div id="rv-meaning" class="hidden"><div class="ko">${esc(p.korean || "")}</div>${p.example ? `<div class="ex">${esc(p.example)}</div>` : ""}</div>
+    </div>
+    <div class="grades" style="margin-top:14px">
+      <button class="g-know" data-g="know">알았음</button>
+      <button class="g-unsure" data-g="unsure">헷갈림</button>
+      <button class="g-forgot" data-g="forgot">몰랐음</button>
+    </div>
+    <p class="small muted" style="text-align:center">알았음 → 간격 늘림 (1→3→7→18일…) · 헷갈림 → 그대로 · 몰랐음 → 내일 다시</p>`;
+  $("#rv-play").onclick = () => TTS.speak(p.english, rate());
+  $("#rv-mean").onclick = () => $("#rv-meaning").classList.remove("hidden");
+  $("#rv-say").onclick = async () => {
+    TTS.unlock(); TTS.stop();
+    if (!STT.supported) return toast("음성 인식이 안 되는 브라우저예요");
+    const h = $("#rv-heard"); h.textContent = "듣는 중…";
+    const t = await STT.listen({ lang: "en-US", silenceMs: 1500, maxMs: 12000, onInterim: (x) => (h.textContent = x) });
+    if (t === null) return (h.textContent = "");
+    const sc = similarity(p.english, t || "");
+    h.innerHTML = t ? `${sc >= 0.7 ? "👍 잘했어요" : "🙂 한 번 더?"} <span class="muted">${esc(t)}</span>` : "<span class='muted'>안 들렸어요</span>";
+  };
+  v.querySelectorAll("[data-g]").forEach((b) => (b.onclick = async () => {
+    const patch = schedule(p, b.dataset.g);
+    try { await api.updatePhrase(p.id, patch); } catch (e) { return toast("저장 실패: " + e.message); }
+    reviewQueue.shift(); STT.cancel(); drawReviewCard();
+  }));
+  TTS.speak(p.english, rate());
+}
+
+// ═════════════════════════ 기록 ═════════════════════════
+async function renderHistory() {
+  const v = $("#v-history");
+  v.innerHTML = `<h2>기록</h2><p class="muted">불러오는 중…</p>`;
+  let list = [];
+  try { list = await api.sessions(100); } catch (e) { v.innerHTML = `<h2>기록</h2><p>불러오기 실패: ${esc(e.message)}</p>`; return; }
+  const done = list.filter((x) => x.user_turns > 0);
+  const totalMin = list.reduce((a, x) => a + Number(x.minutes || 0), 0);
+  const last5 = done.slice(0, 5);
+  const u5 = last5.reduce((a, x) => a + x.user_turns, 0), e5 = last5.reduce((a, x) => a + x.english_turns, 0);
+  const since = kstDayStart(0);
+  const todayMin = list.filter((x) => new Date(x.started_at) >= since).reduce((a, x) => a + Number(x.minutes || 0), 0);
+  const chart = done.slice(0, 14).reverse();
+  v.innerHTML = `<h2>기록</h2>
+    <div class="stats">
+      <div class="card stat"><div class="v">L${S().level}</div><div class="k">현재 레벨 · ${LEVEL_INFO[S().level][0]}</div></div>
+      <div class="card stat"><div class="v">${u5 ? Math.round((e5 / u5) * 100) : 0}%</div><div class="k">최근 5세션 영어 답변 비율 (80%↑ 레벨업 후보)</div></div>
+      <div class="card stat"><div class="v">${list.length}</div><div class="k">총 세션</div></div>
+      <div class="card stat"><div class="v">${Math.round(totalMin)}분</div><div class="k">총 말한 시간</div></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="small">오늘 <b>${Math.round(todayMin)}</b> / ${S().goal_min}분</div>
+      <div class="today"><i style="width:${Math.min(100, (todayMin / S().goal_min) * 100)}%"></i></div>
+    </div>
+    <div class="card" style="margin-top:10px">
+      <div class="small"><b>세션별 영어 답변 비율</b> <span class="muted">(아래 숫자 = 레벨)</span></div>
+      ${chart.length ? `<div class="chart">${chart.map((x) => {
+        const r = x.user_turns ? x.english_turns / x.user_turns : 0;
+        return `<div class="col" title="${fmtDate(x.started_at)} · ${Math.round(r * 100)}%"><div class="bar" style="height:${Math.max(2, r * 100)}%;opacity:${0.45 + x.level * 0.11}"></div><div class="lv">L${x.level}</div></div>`;
+      }).join("")}</div>` : `<p class="muted small">아직 기록이 없어요.</p>`}
+    </div>
+    <h3>세션 목록</h3>
+    <div>${list.map((x, i) => {
+      const r = x.user_turns ? Math.round((x.english_turns / x.user_turns) * 100) : 0;
+      const sm = x.summary_json;
+      return `<div class="sess" data-i="${i}">
+        <div class="h"><div><b>${MODE_KO[x.mode]}</b>${x.scenario !== null && x.scenario !== undefined ? ` · ${esc(SCENARIOS_KO[x.scenario])}` : ""}<div class="d">${fmtDate(x.started_at)} · ${Number(x.minutes || 0).toFixed(0)}분 · 영어 ${r}% (${x.english_turns}/${x.user_turns})</div></div>
+        <span class="pill">L${x.level}${sm && sm.level_after !== sm.level_before ? ` → L${sm.level_after}` : ""}</span></div>
+        <div class="detail hidden">${sm ? `
+          <div><b>표현</b>: ${sm.phrases.map((p) => esc(p.english)).join(" · ")}</div>
+          ${sm.fixes.length ? `<div><b>고칠 점</b>: ${sm.fixes.map((f) => `${esc(f.mine)} → <b>${esc(f.better)}</b>`).join(" / ")}</div>` : ""}
+          ${sm.tomorrow ? `<div><b>내일 문장</b>: ${esc(sm.tomorrow.english)}</div>` : ""}
+          <div class="muted">판정 L${sm.level.level}: ${esc(sm.level.reason_ko)}</div>` : `<span class="muted">마무리 정리 없이 끝난 세션</span>`}</div>
+      </div>`;
+    }).join("")}</div>`;
+  v.querySelectorAll(".sess").forEach((el) => (el.onclick = () => $(".detail", el).classList.toggle("hidden")));
+}
+
+// ═════════════════════════ 설정 ═════════════════════════
+function renderSettings() {
+  const s = S(), v = $("#v-settings");
+  const voices = TTS.voices, cur = TTS.pick();
+  v.innerHTML = `<h2>설정</h2>
+    <div class="field"><label>친구 이름</label><input id="st-name" value="${esc(s.friend_name)}"></div>
+    <div class="field"><label>친구 성격</label><input id="st-persona" value="${esc(s.persona)}"></div>
+    <div class="field"><label>나에 대해 (AI가 참고)</label><textarea id="st-about">${esc(s.about_me)}</textarea></div>
+    <div class="field"><label>레벨</label>
+      <div style="display:flex;gap:8px">
+        <select id="st-lvmode" style="flex:1"><option value="auto">자동 (진단·레벨업)</option><option value="manual">수동</option></select>
+        <select id="st-level" style="flex:1">${[1, 2, 3, 4, 5].map((n) => `<option value="${n}">L${n} ${LEVEL_INFO[n][0]}</option>`).join("")}</select>
+      </div>
+      <span class="small muted">자동: 최근 5세션 영어 답변 80% 이상 + 마무리 평가 "다음 단계 가능"이면 다음 세션부터 올라가요.</span>
+    </div>
+    <div class="field"><label>세션 모드</label><select id="st-mode"><option value="alternate">번갈아 (자유 수다 ↔ 시나리오)</option><option value="scenario">시나리오만</option><option value="free">자유 수다만</option></select></div>
+    <div class="field"><label>다음 시나리오</label><select id="st-scn">${SCENARIOS_KO.map((t, i) => `<option value="${i}">${i + 1}. ${esc(t)}</option>`).join("")}</select></div>
+    <div class="field"><label>하루 목표 시간: <span id="st-goal-v">${s.goal_min}</span>분</label><input id="st-goal" type="range" min="5" max="60" step="5" value="${s.goal_min}"></div>
+    <div class="field"><label>말 속도: <span id="st-rate-v"></span></label>
+      <select id="st-rate"><option value="auto">레벨에 맞춰 자동</option>${[0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1].map((r) => `<option value="${r}">${r}</option>`).join("")}</select></div>
+    <div class="field"><label>목소리</label>
+      <select id="st-voice"><option value="">자동 (가장 자연스러운 것)</option>${voices.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} (${x.lang})</option>`).join("")}</select>
+      <button class="btn ghost small" id="st-test" style="align-self:flex-start">🔊 들어 보기</button>
+      <span class="small muted">지금: ${esc(cur?.name || "기본")}. 목소리는 기기마다 따로 저장돼요.</span>
+    </div>
+    <div class="switch"><span>한국어 뜻 바로 보이기<br><span class="small muted">끄면 말풍선을 탭해야 보여요</span></span><input type="checkbox" id="st-ko"></div>
+    <div class="switch"><span>글자 늦게 보이기<br><span class="small muted">소리 먼저 → 1초 뒤 영어 글자 → 탭하면 뜻</span></span><input type="checkbox" id="st-delay"></div>
+    <div class="switch"><span>핸즈프리 모드<br><span class="small muted">친구 말이 끝나면 자동으로 듣고, 2초 조용하면 전송</span></span><input type="checkbox" id="st-hf"></div>
+    <button class="btn" id="st-save" style="width:100%;margin-top:16px">저장</button>
+    <div style="margin-top:28px" class="small muted">${MOCK ? "⚠️ 목업 모드 (서버 연결 안 됨). index.html 위쪽 CONFIG를 채우면 실제로 동작해요." : ""}</div>
+    <button class="btn ghost" id="st-logout" style="width:100%;margin-top:8px">로그아웃</button>`;
+  $("#st-lvmode").value = s.level_mode; $("#st-level").value = s.level; $("#st-mode").value = s.session_mode;
+  $("#st-scn").value = s.scenario_index % 12; $("#st-rate").value = String(s.rate); $("#st-voice").value = LS.get("voice", "");
+  $("#st-ko").checked = !!s.show_ko; $("#st-delay").checked = !!s.delay_text; $("#st-hf").checked = !!s.hands_free;
+  const rv = () => ($("#st-rate-v").textContent = $("#st-rate").value === "auto" ? `자동 (L${$("#st-level").value} = ${LEVEL_INFO[$("#st-level").value][1]})` : $("#st-rate").value);
+  rv(); $("#st-rate").onchange = rv; $("#st-level").onchange = rv;
+  $("#st-goal").oninput = (e) => ($("#st-goal-v").textContent = e.target.value);
+  $("#st-test").onclick = () => {
+    TTS.unlock(); LS.set("voice", $("#st-voice").value);
+    const r = $("#st-rate").value === "auto" ? LEVEL_INFO[$("#st-level").value][1] : Number($("#st-rate").value);
+    TTS.speak(`Hi! I'm ${$("#st-name").value || "Emma"}. How was your day?`, r);
+  };
+  $("#st-save").onclick = async () => {
+    const lvl = Number($("#st-level").value), lvmode = $("#st-lvmode").value;
+    Object.assign(state.settings, {
+      friend_name: $("#st-name").value.trim() || "Emma", persona: $("#st-persona").value.trim() || DEFAULT_SETTINGS.persona,
+      about_me: $("#st-about").value.trim() || DEFAULT_SETTINGS.about_me,
+      level_mode: lvmode, level: lvl, session_mode: $("#st-mode").value, scenario_index: Number($("#st-scn").value),
+      goal_min: Number($("#st-goal").value), rate: $("#st-rate").value === "auto" ? "auto" : Number($("#st-rate").value),
+      show_ko: $("#st-ko").checked, delay_text: $("#st-delay").checked, hands_free: $("#st-hf").checked,
+    });
+    if (lvmode === "manual" || lvl !== s.level) state.settings.diagnosed = true; // 직접 정했으면 진단 생략
+    LS.set("voice", $("#st-voice").value);
+    try { await saveSettings(); toast("저장했어요"); headerInfo(); } catch (e) { toast("저장 실패: " + e.message); }
+  };
+  $("#st-logout").onclick = async () => { await api.signOut(); location.reload(); };
+}
+
+// ═════════════════════════ 시작 ═════════════════════════
+async function boot() {
+  if (MOCK) { const b = document.createElement("div"); b.className = "mockbadge"; b.textContent = "목업 모드"; document.body.appendChild(b); }
+  const sess = await api.session();
+  if (!sess) {
+    $("#login").classList.remove("hidden");
+    $("#lg-btn").onclick = async () => {
+      $("#lg-err").textContent = "";
+      try { await api.signIn($("#lg-email").value.trim(), $("#lg-pw").value); location.reload(); }
+      catch (e) { $("#lg-err").textContent = "로그인 실패: " + e.message; }
+    };
+    $("#lg-pw").onkeydown = (e) => { if (e.key === "Enter") $("#lg-btn").click(); };
+    return;
+  }
+  await loadSettings().catch(() => {});
+  $("#tabs").classList.remove("hidden");
+  showTab("chat");
+  refreshDueBadge();
+}
+boot();
+</script>
+</body>
+</html>
