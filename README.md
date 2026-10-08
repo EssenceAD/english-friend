@@ -58,20 +58,35 @@ npx supabase functions deploy chat
 | `AI_EFFORT` | `low` | 생각 깊이. 지원 안 하는 모델이면 `none` |
 | `AI_STRUCTURED` | `on` | JSON 스키마 강제. 문제 생기면 `off` |
 | `DAILY_CALL_LIMIT` | `300` | 하루 AI 호출 상한 |
-| `ALLOWED_ORIGIN` | `*` | 깃허브 페이지 주소로 좁히기 (예: `https://아이디.github.io`) |
+| `ALLOWED_ORIGIN` | `*` | 깃허브 페이지 주소로 좁히기: `https://essencead.github.io` |
 
 `ALLOWED_EMAILS`가 비어 있으면 함수가 아무 요청도 받지 않는다 (일부러 그렇게 만듦).
 
 ### 4. index.html 설정
 Supabase **Project Settings → API**에서 Project URL과 anon(또는 publishable) 키를 복사해 `index.html` 위쪽 `CONFIG`에 넣는다.
-이 키는 공개돼도 되는 키다 (RLS + 로그인 + 이메일 허용 목록으로 막혀 있음). **AI 키는 절대 여기 넣지 않는다.**
+이 키는 공개돼도 되는 키다 (RLS + 로그인 + 이메일 허용 목록으로 막혀 있음). **AI 키는 절대 여기 넣지 않는다.** 고친 뒤 commit + push하면 깃허브 페이지에 반영된다.
 
-### 5. 깃허브 페이지
-1. 깃허브에 새 저장소 → 이 폴더 push
-2. Settings → Pages → Branch `main` / root → Save
-3. 폰 크롬에서 `https://아이디.github.io/저장소이름/` 열기 → 홈 화면에 추가
+### 5. 깃허브 페이지 (설정 완료)
+- 저장소: https://github.com/EssenceAD/english-friend (공개)
+- 앱 주소: **https://essencead.github.io/english-friend/** (Settings → Pages: `main` 브랜치 / root)
+- `main`에 push하면 1~2분 뒤 자동으로 반영된다.
+- 4번(CONFIG)을 채우기 전에는 목업 모드로 뜬다.
+- 폰 크롬에서 앱 주소 열기 → 메뉴 → "홈 화면에 추가"
 
 마이크는 https에서만 동작한다 (깃허브 페이지는 https라 OK).
+
+## 공개 저장소 주의
+
+이 저장소는 누구나 볼 수 있다. 아래만 지키면 안전하다.
+- **AI 키(`sk-ant-...`)·비밀번호·service_role 키는 절대 커밋하지 않는다.** 모두 Supabase Secrets / Auth에만 둔다.
+- 내 이메일은 `ALLOWED_EMAILS` 시크릿에만 넣는다 (코드에 쓰지 않음).
+- `CONFIG`의 Supabase URL·anon(publishable) 키는 원래 브라우저에 공개되는 값이라 커밋해도 된다. 막는 건 RLS + 가입 차단 + `ALLOWED_EMAILS`가 한다.
+- 커밋 작성자 이메일은 GitHub noreply 주소로 설정돼 있다 (이 저장소의 `git config user.email`).
+- push 전 점검:
+
+```bash
+git grep -n -E "sk-ant-[A-Za-z0-9]|service_role|sb_secret_"
+```
 
 ## 동작 요약
 
